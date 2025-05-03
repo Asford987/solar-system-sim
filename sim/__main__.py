@@ -40,7 +40,7 @@ class SolarSystemApp(ShowBase):
     
     def _build_starfield(self):
         """Create an inside‑out sphere textured with stars."""
-        sky = loader.loadModel("assets/models/planet_sphere.OBJ")
+        sky = loader.loadModel("../assets/models/planet_sphere.OBJ")
         sky.reparentTo(self.render)
         sky.setScale(1500)
         sky.setTwoSided(True)
@@ -49,9 +49,7 @@ class SolarSystemApp(ShowBase):
         sky.setDepthWrite(False)
         sky.setCompass()
 
-        stars = loader.loadTexture("assets/textures/space.jpg")
-        stars.setMinfilter(stars.FTNearest)
-        stars.setMagfilter(stars.FTNearest)
+        stars = loader.loadTexture("../assets/textures/space.jpg")
         stars.setMinfilter(stars.FTLinearMipmapLinear)
         sky.setTexture(stars, 1)
         # Flip V so the skymap isn’t upside‑down

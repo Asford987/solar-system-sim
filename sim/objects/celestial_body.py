@@ -33,7 +33,7 @@ class CelestialBody:
 
         self.node  = parent_node.attachNewNode(self.name)
 
-        self.model = loader.loadModel("assets/models/planet_sphere.OBJ")
+        self.model = loader.loadModel("../assets/models/planet_sphere.OBJ")
         self.model.reparentTo(self.node)
         self.model.setScale(self.radius)
 

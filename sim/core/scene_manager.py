@@ -21,7 +21,7 @@ class SceneManager:
         orbit_radius = body_data.get("orbit_radius", 0.0)
         orbit_speed = body_data.get("orbit_speed", 0.0)
         rotation_speed = body_data.get("rotation_speed", 0.0)
-        texture_path = body_data.get("texture", None)
+        texture_path = '../' + body_data.get("texture", None)
         inclination = body_data.get("inclination", 0.0)
 
         body = CelestialBody(

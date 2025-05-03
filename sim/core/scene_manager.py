@@ -3,7 +3,7 @@ from objects.celestial_body import CelestialBody
 class SceneManager:
     def __init__(self, app):
         self.app = app
-        self.root_node = app.render  # Attach all bodies to root node
+        self.root_node = app.render
 
     def build_scene(self, scene_data):
         """

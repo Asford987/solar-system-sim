@@ -16,7 +16,12 @@ class CameraController:
         self.heading = 0.0
         self.pitch = 0.0
 
-        self.keys = {"w": False, "s": False, "a": False, "d": False, "q": False, "e": False}
+        self.keys = {
+            "w": False, "s": False, "a": False, "d": False,
+            "q": False, "e": False,
+            "space": False, "shift": False,
+        }
+        
         for k in self.keys:
             app.accept(k, self.set_key, [k, True])
             app.accept(f"{k}-up", self.set_key, [k, False])
@@ -73,6 +78,11 @@ class CameraController:
         if direction.length_squared() > 0:
             direction.normalize()
             self.camera.setPos(self.camera.getPos() + direction * self.speed * dt)
+
+        if self.keys["shift"]:
+            self.camera.setZ(self.camera, -self.speed * dt)
+        if self.keys["space"]:
+            self.camera.setZ(self.camera,  self.speed * dt)
 
         pos = self.camera.getPos()
         self.coord_text.setText(f"Pos: X={pos.x:.1f}, Y={pos.y:.1f}, Z={pos.z:.1f}")

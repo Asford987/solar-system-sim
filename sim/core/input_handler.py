@@ -3,7 +3,6 @@ class InputHandler:
         self.app = app
         self.camera_controller = camera_controller
 
-        # Reset camera position
         app.accept("r", self.reset_camera)
 
     def reset_camera(self):

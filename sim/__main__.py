@@ -7,7 +7,6 @@ from core.scene_manager import SceneManager
 from core.camera_controller import CameraController
 from core.input_handler import InputHandler
 
-# Optional: Configure Panda3D window
 loadPrcFileData('', 'window-title Solar System Sandbox')
 loadPrcFileData('', 'show-frame-rate-meter 1')
 
@@ -52,7 +51,6 @@ class SolarSystemApp(ShowBase):
         stars = loader.loadTexture("../assets/textures/space.jpg")
         stars.setMinfilter(stars.FTLinearMipmapLinear)
         sky.setTexture(stars, 1)
-        # Flip V so the skymap isn’t upside‑down
         sky.setTexScale(TextureStage.getDefault(), 1, -1)
         
 # Run the app

@@ -3,8 +3,8 @@ from direct.showbase.ShowBase import ShowBase
 
 loadPrcFileData("", "load-file-type p3assimp")
 from panda3d.core import LineSegs, Vec3, NodePath, TextureStage
-from utils.orbit_math import get_orbit_position, clamp_angle
-from math import radians, cos, sin
+from math import radians, sin, cos
+from utils.orbit_math import clamp_angle
 
 
 class CelestialBody:
@@ -17,7 +17,8 @@ class CelestialBody:
         rotation_speed,
         radius,
         texture_path=None,
-        debug_orbit=False,
+        inclination=0.0,
+        debug_orbit=True,
     ):
         self.name           = name
         self.orbit_radius   = orbit_radius
@@ -25,60 +26,71 @@ class CelestialBody:
         self.rotation_speed = rotation_speed
         self.radius         = radius
         self.texture_path   = texture_path
+        self.inclination    = inclination
 
         self.orbit_angle    = 0.0
         self.rotation_angle = 0.0
 
+        # ---------- scene graph ----------
         self.node  = parent_node.attachNewNode(self.name)
 
-        # centre the sphere at the node origin
         self.model = loader.loadModel("assets/models/planet_sphere.OBJ")
         self.model.reparentTo(self.node)
         self.model.setScale(self.radius)
 
-        # texture (unchanged)
+        # texture
         if self.texture_path:
             try:
                 tex = loader.loadTexture(self.texture_path)
                 tex.setMinfilter(tex.FT_linear_mipmap_linear)
                 self.model.setTexture(tex, 1)
-                # flip V so it isn’t upside‑down
-                self.model.setTexScale(TextureStage.getDefault(), 1, -1)
+                self.model.setTexScale(TextureStage.getDefault(), 1, -1)  # flip V
             except Exception as e:
                 print(f"[{self.name}] texture load failed: {e}")
 
+        # debug orbit ring
         if debug_orbit and self.orbit_radius > 0:
             self._make_orbit_ring(parent_node)
 
-        # start at correct position
-        self.node.setPos(get_orbit_position(self.orbit_radius, self.orbit_angle))
-
-    def _make_orbit_ring(self, parent_node, segments=128, colour=(1, 0, 0, 1)):
-        segs = LineSegs()
-        segs.setThickness(1.5)
-        segs.setColor(*colour)
-
-        for i in range(segments + 1):
-            a = radians(i * 360 / segments)
-            x = self.orbit_radius * cos(a)
-            y = self.orbit_radius * sin(a)
-            if i == 0:
-                segs.moveTo(x, y, 0)
-            else:
-                segs.drawTo(x, y, 0)
-
-        ring = segs.create()
-        NodePath(ring).reparentTo(parent_node)
+        # initial placement
+        self.node.setPos(self._inclined_pos(self.orbit_angle))
 
     # ------------------------------------------------------------------ #
-    # per‑frame update
+    # Helpers
+    # ------------------------------------------------------------------ #
+    def _inclined_pos(self, angle_deg):
+        """Return position on orbit with inclination applied (rotate about X)."""
+        a = radians(angle_deg)
+        inc = radians(self.inclination)
+        x = self.orbit_radius * cos(a)
+        y_flat = self.orbit_radius * sin(a)
+        y = y_flat * cos(inc)
+        z = y_flat * sin(inc)
+        return Vec3(x, y, z)
+
+    def _make_orbit_ring(self, parent_node, segs=128, color=(0, 1, 0, 1)):
+        ls = LineSegs()
+        ls.setThickness(1.2)
+        ls.setColor(*color)
+
+        for i in range(segs + 1):
+            p = self._inclined_pos(i * 360 / segs)
+            if i == 0:
+                ls.moveTo(p)
+            else:
+                ls.drawTo(p)
+
+        NodePath(ls.create()).reparentTo(parent_node)
+
+    # ------------------------------------------------------------------ #
+    # Per‑frame update
     # ------------------------------------------------------------------ #
     def update_task(self, task):
         dt = globalClock.getDt()
 
-        # move along the orbit
+        # orbit
         self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
-        self.node.setPos(get_orbit_position(self.orbit_radius, self.orbit_angle))
+        self.node.setPos(self._inclined_pos(self.orbit_angle))
 
         # self‑rotation
         self.rotation_angle += self.rotation_speed * dt

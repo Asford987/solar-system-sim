@@ -12,6 +12,7 @@
       "orbit_radius": 10.0,
       "orbit_speed": 10.0,
       "rotation_speed": 30.0,
+      "inclination": 7.2,
       "texture": "assets/textures/earth.jpg",
       "children": [
         {
@@ -21,6 +22,7 @@
           "orbit_radius": 2.0,
           "orbit_speed": 30.0,
           "rotation_speed": 60.0,
+          "inclination": -3.2,
           "texture": "assets/textures/moon.jpg"
         }
       ]

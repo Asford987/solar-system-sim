@@ -22,8 +22,8 @@ class SceneManager:
         orbit_speed = body_data.get("orbit_speed", 0.0)
         rotation_speed = body_data.get("rotation_speed", 0.0)
         texture_path = body_data.get("texture", None)
+        inclination = body_data.get("inclination", 0.0)
 
-        # Create this celestial body
         body = CelestialBody(
             name=name,
             parent_node=parent_node,
@@ -31,12 +31,11 @@ class SceneManager:
             orbit_speed=orbit_speed,
             rotation_speed=rotation_speed,
             radius=radius,
-            texture_path=texture_path
+            texture_path=texture_path,
+            inclination=inclination
         )
 
-        # Register update task
         self.app.taskMgr.add(body.update_task, f"update-{name}")
 
-        # Recursively create child bodies (e.g. moons)
         for child_data in body_data.get("children", []):
             self._build_recursive(child_data, body.node)

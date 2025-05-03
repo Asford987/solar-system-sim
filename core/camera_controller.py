@@ -1,0 +1,95 @@
+from panda3d.core import Vec3, WindowProperties, TextNode
+from direct.gui.OnscreenText import OnscreenText
+from direct.task import Task
+
+
+class CameraController:
+    def __init__(self, app):
+        self.app = app
+        self.win = app.win
+        self.camera = app.camera
+
+        # --- Disable Panda3D’s built‑in trackball so it won’t fight us
+        app.disableMouse()
+
+        # Movement & look parameters
+        self.speed = 25.0
+        self.mouse_sensitivity = 0.15
+        self.heading = 0.0
+        self.pitch = 0.0
+
+        # Key state
+        self.keys = {"w": False, "s": False, "a": False, "d": False, "q": False, "e": False}
+        for k in self.keys:
+            app.accept(k, self.set_key, [k, True])
+            app.accept(f"{k}-up", self.set_key, [k, False])
+
+        # Hide and confine cursor
+        props = WindowProperties()
+        props.setCursorHidden(True)
+        props.setMouseMode(WindowProperties.M_confined)
+        self.win.requestProperties(props)
+        self.center_mouse()
+
+        # On‑screen XYZ display
+        self.coord_text = OnscreenText(
+            text="Pos:",
+            pos=(-1.29, -0.95),  # tweak if it overlaps your UI
+            scale=0.05,
+            fg=(1, 1, 1, 1),
+            align=TextNode.ALeft,
+            mayChange=True,
+        )
+
+        # Main update task
+        app.taskMgr.add(self.update_camera, "free_fly_camera")
+
+    # ------------------------------------------------------------------ #
+    # Helper methods
+    # ------------------------------------------------------------------ #
+    def center_mouse(self):
+        sx, sy = self.win.getProperties().getXSize(), self.win.getProperties().getYSize()
+        self.cx, self.cy = sx // 2, sy // 2
+        self.win.movePointer(0, self.cx, self.cy)
+
+    def set_key(self, key, value):
+        self.keys[key] = value
+
+    # ------------------------------------------------------------------ #
+    # Per‑frame update
+    # ------------------------------------------------------------------ #
+    def update_camera(self, task):
+        dt = globalClock.getDt()
+
+        # --- Mouse look ---
+        if self.app.mouseWatcherNode.hasMouse():
+            md = self.win.getPointer(0)
+            dx = md.getX() - self.cx
+            dy = md.getY() - self.cy
+
+            self.heading -= dx * self.mouse_sensitivity
+            self.pitch = max(-90, min(90, self.pitch - dy * self.mouse_sensitivity))
+            self.camera.setHpr(self.heading, self.pitch, 0)
+
+            self.center_mouse()
+
+        # --- WASDQE movement ---
+        direction = Vec3()
+        quat = self.camera.getQuat()
+
+        if self.keys["w"]: direction += quat.getForward()
+        if self.keys["s"]: direction -= quat.getForward()
+        if self.keys["a"]: direction -= quat.getRight()
+        if self.keys["d"]: direction += quat.getRight()
+        if self.keys["q"]: direction -= quat.getUp()
+        if self.keys["e"]: direction += quat.getUp()
+
+        if direction.length_squared() > 0:
+            direction.normalize()
+            self.camera.setPos(self.camera.getPos() + direction * self.speed * dt)
+
+        # --- Update on‑screen coordinates ---
+        pos = self.camera.getPos()
+        self.coord_text.setText(f"Pos: X={pos.x:.1f}, Y={pos.y:.1f}, Z={pos.z:.1f}")
+
+        return Task.cont

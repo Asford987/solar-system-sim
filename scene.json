@@ -1,0 +1,29 @@
+{
+  "name": "Sun",
+  "type": "star",
+  "radius": 2.0,
+  "rotation_speed": 5.0,
+  "texture": "assets/textures/sun.png",
+  "children": [
+    {
+      "name": "Earth",
+      "type": "planet",
+      "radius": 0.6,
+      "orbit_radius": 10.0,
+      "orbit_speed": 10.0,
+      "rotation_speed": 30.0,
+      "texture": "assets/textures/earth.jpg",
+      "children": [
+        {
+          "name": "Moon",
+          "type": "moon",
+          "radius": 0.2,
+          "orbit_radius": 2.0,
+          "orbit_speed": 30.0,
+          "rotation_speed": 60.0,
+          "texture": "assets/textures/moon.jpg"
+        }
+      ]
+    }
+  ]
+}

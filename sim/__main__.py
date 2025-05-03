@@ -40,7 +40,7 @@ class SolarSystemApp(ShowBase):
     
     def _build_starfield(self):
         """Create an inside‑out sphere textured with stars."""
-        sky = loader.loadModel("../assets/models/planet_sphere.OBJ")
+        sky = loader.loadModel("../assets/models/planet_sphere_with_uv.egg")
         sky.reparentTo(self.render)
         sky.setScale(1500)
         sky.setTwoSided(True)

@@ -31,20 +31,18 @@ class CelestialBody:
         self.orbit_angle    = 0.0
         self.rotation_angle = 0.0
 
-        # ---------- scene graph ----------
         self.node  = parent_node.attachNewNode(self.name)
 
         self.model = loader.loadModel("assets/models/planet_sphere.OBJ")
         self.model.reparentTo(self.node)
         self.model.setScale(self.radius)
 
-        # texture
         if self.texture_path:
             try:
                 tex = loader.loadTexture(self.texture_path)
                 tex.setMinfilter(tex.FT_linear_mipmap_linear)
                 self.model.setTexture(tex, 1)
-                self.model.setTexScale(TextureStage.getDefault(), 1, -1)  # flip V
+                self.model.setTexScale(TextureStage.getDefault(), 1, -1)
             except Exception as e:
                 print(f"[{self.name}] texture load failed: {e}")
 
@@ -55,9 +53,6 @@ class CelestialBody:
         # initial placement
         self.node.setPos(self._inclined_pos(self.orbit_angle))
 
-    # ------------------------------------------------------------------ #
-    # Helpers
-    # ------------------------------------------------------------------ #
     def _inclined_pos(self, angle_deg):
         """Return position on orbit with inclination applied (rotate about X)."""
         a = radians(angle_deg)
@@ -82,17 +77,12 @@ class CelestialBody:
 
         NodePath(ls.create()).reparentTo(parent_node)
 
-    # ------------------------------------------------------------------ #
-    # Per‑frame update
-    # ------------------------------------------------------------------ #
     def update_task(self, task):
         dt = globalClock.getDt()
 
-        # orbit
         self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
         self.node.setPos(self._inclined_pos(self.orbit_angle))
 
-        # self‑rotation
         self.rotation_angle += self.rotation_speed * dt
         self.model.setH(self.rotation_angle)
 

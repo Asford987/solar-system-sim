@@ -24,6 +24,7 @@ class SceneManager:
         rotation_speed = body_data.get("rotation_speed", 0.0)
         texture_path = '../' + body_data.get("texture", None)
         inclination = body_data.get("inclination", 0.0)
+        rings_data = body_data.get("rings", None)
 
         body = CelestialBody(
             name=name,
@@ -34,7 +35,8 @@ class SceneManager:
             rotation_speed=rotation_speed,
             radius=radius,
             texture_path=texture_path,
-            inclination=inclination
+            inclination=inclination,
+            rings=rings_data,
         )
 
         self.app.taskMgr.add(body.update_task, f"update-{name}")

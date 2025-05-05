@@ -11,7 +11,7 @@ class CameraController:
 
         app.disableMouse()
 
-        self.speed = 250.0
+        self.speed = 50.0
         self.mouse_sensitivity = 0.15
         self.heading = 0.0
         self.pitch = 0.0

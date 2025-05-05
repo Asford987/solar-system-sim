@@ -1,11 +1,40 @@
 import math
-from panda3d.core import *
+from panda3d.core import (
+    Vec3, LineSegs, NodePath, TextureStage, TransparencyAttrib,
+    GeomVertexData, GeomVertexFormat, GeomVertexWriter,
+    GeomTriangles, Geom, GeomNode
+)
 from direct.showbase.ShowBase import ShowBase
-
-loadPrcFileData("", "load-file-type p3assimp")
-from panda3d.core import LineSegs, Vec3, NodePath, TextureStage
-from math import radians, sin, cos
 from utils.orbit_math import clamp_angle
+
+def _make_ring_vertex_data(inner_radius, outer_radius, segments=64):
+    fmt    = GeomVertexFormat.get_v3t2()
+    vdata  = GeomVertexData('ring', fmt, Geom.UHStatic)
+    vwriter = GeomVertexWriter(vdata, 'vertex')
+    twriter = GeomVertexWriter(vdata, 'texcoord')
+
+    for i in range(segments + 1):
+        t = 2 * math.pi * i / segments
+        # externo
+        x_out, y_out = outer_radius * math.cos(t), outer_radius * math.sin(t)
+        vwriter.add_data3(x_out, y_out, 0)
+        twriter.add_data2((math.cos(t)*0.5 + 0.5), (math.sin(t)*0.5 + 0.5))
+        # interno
+        x_in, y_in = inner_radius * math.cos(t), inner_radius * math.sin(t)
+        vwriter.add_data3(x_in, y_in, 0)
+        twriter.add_data2(
+            (math.cos(t)*(inner_radius/outer_radius)*0.5 + 0.5),
+            (math.sin(t)*(inner_radius/outer_radius)*0.5 + 0.5)
+        )
+    return vdata
+
+def _make_ring_primitive(segments=64):
+    tris = GeomTriangles(Geom.UHStatic)
+    for i in range(segments):
+        idx = 2 * i
+        tris.add_vertices(idx,   idx+1, idx+2)
+        tris.add_vertices(idx+2, idx+1, idx+3)
+    return tris
 
 
 class CelestialBody:
@@ -21,6 +50,7 @@ class CelestialBody:
         texture_path=None,
         inclination=0.0,
         debug_orbit=True,
+        rings=None,
     ):
         self.name           = name
         self.orbit_radius   = orbit_radius
@@ -58,6 +88,31 @@ class CelestialBody:
         # initial placement
         self.node.setPos(self._inclined_pos(self.orbit_angle))
 
+        self.ring_np = None
+        if rings:
+            inner  = rings["inner_radius"]
+            outer  = rings["outer_radius"]
+            tex    = rings["texture"]
+            speed  = rings.get("rotation_speed", self.rotation_speed)
+            # cria e parenta o GeoNode na cena
+            vdata = _make_ring_vertex_data(inner, outer)
+            prim  = _make_ring_primitive()
+            geom  = Geom(vdata)
+            geom.add_primitive(prim)
+            node  = GeomNode('saturn_ring')
+            node.add_geom(geom)
+            ring_np = self.node.attach_new_node(node)
+            ring_np.setZ(self.radius * 0.01)                     # eleva o anel para não ficar oculto
+            ring_np.setTwoSided(True)                           # mostra ambos os lados do anel
+            ring_np.setBin('transparent', 10)                   # força renderizar depois para transparência
+            ring_np.setDepthWrite(False) 
+            # aplica textura e transparência
+            ts = TextureStage('ts')
+            ring_np.setTexture(ts, loader.loadTexture(tex))
+            ring_np.setTransparency(TransparencyAttrib.M_alpha)
+            # guarda para animar
+            ring_np.setPythonTag('ring_speed', speed)
+            self.ring_np = ring_np
     def _inclined_pos(self, angle_deg):
         """Return position on orbit with inclination applied (rotate about X)."""
         t = math.radians(angle_deg)
@@ -93,5 +148,7 @@ class CelestialBody:
 
         self.rotation_angle += self.rotation_speed * dt
         self.model.setH(self.rotation_angle)
-
+        if self.ring_np:
+            rs = self.ring_np.getPythonTag('ring_speed')
+            self.ring_np.setH(self.ring_np.getH() + rs *50* globalClock.getDt())
         return task.cont

@@ -43,9 +43,9 @@ class CameraController:
         app.taskMgr.add(self.update_camera, "free_fly_camera")
         
     def set_mouse_enabled(self, enabled):
+        self.center_mouse()
         props = WindowProperties()
         self.app._mouse_enabled = enabled
-        print(self.app._mouse_enabled)
         if not enabled:
             props.setCursorHidden(True)
             props.setMouseMode(WindowProperties.M_confined)
@@ -63,8 +63,8 @@ class CameraController:
         self.keys[key] = value
 
     def update_camera(self, task):
+        dt = globalClock.getDt()
         if not self.app._mouse_enabled:
-            dt = globalClock.getDt()
             print(self.app._mouse_enabled)
 
             if self.app.mouseWatcherNode.hasMouse():
@@ -99,4 +99,4 @@ class CameraController:
             pos = self.camera.getPos()
             self.coord_text.setText(f"Pos: X={pos.x:.1f}, Y={pos.y:.1f}, Z={pos.z:.1f}")
 
-            return Task.cont
+        return Task.cont

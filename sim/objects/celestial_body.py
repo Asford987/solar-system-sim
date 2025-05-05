@@ -27,7 +27,6 @@ class CelestialBody:
         self.app            = app
         self.orbit_radius   = orbit_radius
         self.eccentricity   = eccentricity
-        # semi-eixo menor b = a * sqrt(1 - e^2)
         self._semi_minor    = orbit_radius * math.sqrt(max(0, 1 - eccentricity**2))
         self.orbit_speed    = orbit_speed
         self.rotation_speed = rotation_speed
@@ -53,11 +52,9 @@ class CelestialBody:
             except Exception as e:
                 print(f"[{self.name}] texture load failed: {e}")
 
-        # debug orbit ring
         if debug_orbit and self.orbit_radius > 0:
             self._make_orbit_ring(parent_node)
 
-        # initial placement
         self.node.setPos(self._inclined_pos(self.orbit_angle))
 
     def _inclined_pos(self, angle_deg):
@@ -88,8 +85,8 @@ class CelestialBody:
         NodePath(ls.create()).reparentTo(parent_node)
 
     def update_task(self, task):
+        dt = globalClock.getDt()
         if not self.app._mouse_enabled:
-            dt = globalClock.getDt()
 
             self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
             self.node.setPos(self._inclined_pos(self.orbit_angle))
@@ -97,4 +94,4 @@ class CelestialBody:
             self.rotation_angle += self.rotation_speed * dt
             self.model.setH(self.rotation_angle)
 
-            return task.cont
+        return task.cont

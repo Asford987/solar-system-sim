@@ -59,7 +59,7 @@
       "orbit_speed": 8.0,
       "rotation_speed": 24.0,
       "inclination": 1.85,
-      "texture": "assets/textures/mars.png",
+      "texture": "assets/textures/mars.png"
     },
     {
       "name": "Jupiter",

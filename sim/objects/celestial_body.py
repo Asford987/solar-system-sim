@@ -1,3 +1,4 @@
+import math
 from panda3d.core import *
 from direct.showbase.ShowBase import ShowBase
 
@@ -13,6 +14,7 @@ class CelestialBody:
         name,
         parent_node,
         orbit_radius,
+        eccentricity, 
         orbit_speed,
         rotation_speed,
         radius,
@@ -22,6 +24,9 @@ class CelestialBody:
     ):
         self.name           = name
         self.orbit_radius   = orbit_radius
+        self.eccentricity   = eccentricity
+        # semi-eixo menor b = a * sqrt(1 - e^2)
+        self._semi_minor    = orbit_radius * math.sqrt(max(0, 1 - eccentricity**2))
         self.orbit_speed    = orbit_speed
         self.rotation_speed = rotation_speed
         self.radius         = radius
@@ -55,12 +60,15 @@ class CelestialBody:
 
     def _inclined_pos(self, angle_deg):
         """Return position on orbit with inclination applied (rotate about X)."""
-        a = radians(angle_deg)
-        inc = radians(self.inclination)
-        x = self.orbit_radius * cos(a)
-        y_flat = self.orbit_radius * sin(a)
-        y = y_flat * cos(inc)
-        z = y_flat * sin(inc)
+        t = math.radians(angle_deg)
+        a = self.orbit_radius
+        b = self._semi_minor 
+        c = a * self.eccentricity    
+        x = a * math.cos(t) - c
+        y_flat = b * math.sin(t)
+        inc = math.radians(self.inclination)
+        y = y_flat * math.cos(inc)
+        z = y_flat * math.sin(inc)
         return Vec3(x, y, z)
 
     def _make_orbit_ring(self, parent_node, segs=128, color=(0, 1, 0, 1)):

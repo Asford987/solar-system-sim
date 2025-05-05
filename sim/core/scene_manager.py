@@ -19,6 +19,7 @@ class SceneManager:
         name = body_data.get("name", "Unnamed")
         radius = body_data.get("radius", 1.0)
         orbit_radius = body_data.get("orbit_radius", 0.0)
+        eccentricity  = body_data.get("eccentricity", 0.0)
         orbit_speed = body_data.get("orbit_speed", 0.0)
         rotation_speed = body_data.get("rotation_speed", 0.0)
         texture_path = '../' + body_data.get("texture", None)
@@ -28,6 +29,7 @@ class SceneManager:
             name=name,
             parent_node=parent_node,
             orbit_radius=orbit_radius,
+            eccentricity=eccentricity,
             orbit_speed=orbit_speed,
             rotation_speed=rotation_speed,
             radius=radius,

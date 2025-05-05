@@ -13,6 +13,7 @@ loadPrcFileData('', 'show-frame-rate-meter 1')
 class SolarSystemApp(ShowBase):
     def __init__(self):
         super().__init__()
+        self._mouse_enabled = False
 
         self.setBackgroundColor(0, 0, 0, 1)
         scene_data = self.load_scene_data("scene.json")

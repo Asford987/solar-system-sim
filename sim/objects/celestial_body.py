@@ -12,6 +12,7 @@ class CelestialBody:
     def __init__(
         self,
         name,
+        app,
         parent_node,
         orbit_radius,
         eccentricity, 
@@ -23,6 +24,7 @@ class CelestialBody:
         debug_orbit=True,
     ):
         self.name           = name
+        self.app            = app
         self.orbit_radius   = orbit_radius
         self.eccentricity   = eccentricity
         # semi-eixo menor b = a * sqrt(1 - e^2)
@@ -86,12 +88,13 @@ class CelestialBody:
         NodePath(ls.create()).reparentTo(parent_node)
 
     def update_task(self, task):
-        dt = globalClock.getDt()
+        if not self.app._mouse_enabled:
+            dt = globalClock.getDt()
 
-        self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
-        self.node.setPos(self._inclined_pos(self.orbit_angle))
+            self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
+            self.node.setPos(self._inclined_pos(self.orbit_angle))
 
-        self.rotation_angle += self.rotation_speed * dt
-        self.model.setH(self.rotation_angle)
+            self.rotation_angle += self.rotation_speed * dt
+            self.model.setH(self.rotation_angle)
 
-        return task.cont
+            return task.cont

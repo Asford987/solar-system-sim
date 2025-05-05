@@ -26,10 +26,7 @@ class CameraController:
             app.accept(k, self.set_key, [k, True])
             app.accept(f"{k}-up", self.set_key, [k, False])
 
-        props = WindowProperties()
-        props.setCursorHidden(True)
-        props.setMouseMode(WindowProperties.M_confined)
-        self.win.requestProperties(props)
+        self.app._mouse_enabled = False
         self.center_mouse()
 
         self.coord_text = OnscreenText(
@@ -40,8 +37,22 @@ class CameraController:
             align=TextNode.ALeft,
             mayChange=True,
         )
+        # Ensure the mouse is disabled by default
+        self.set_mouse_enabled(False)
 
         app.taskMgr.add(self.update_camera, "free_fly_camera")
+        
+    def set_mouse_enabled(self, enabled):
+        props = WindowProperties()
+        self.app._mouse_enabled = enabled
+        print(self.app._mouse_enabled)
+        if not enabled:
+            props.setCursorHidden(True)
+            props.setMouseMode(WindowProperties.M_confined)
+        else:
+            props.setCursorHidden(False)
+            props.setMouseMode(WindowProperties.M_absolute)
+        self.win.requestProperties(props)
 
     def center_mouse(self):
         sx, sy = self.win.getProperties().getXSize(), self.win.getProperties().getYSize()
@@ -52,39 +63,40 @@ class CameraController:
         self.keys[key] = value
 
     def update_camera(self, task):
-        dt = globalClock.getDt()
+        if not self.app._mouse_enabled:
+            dt = globalClock.getDt()
+            print(self.app._mouse_enabled)
 
-        if self.app.mouseWatcherNode.hasMouse():
-            md = self.win.getPointer(0)
-            dx = md.getX() - self.cx
-            dy = md.getY() - self.cy
+            if self.app.mouseWatcherNode.hasMouse():
+                md = self.win.getPointer(0)
+                dx = md.getX() - self.cx
+                dy = md.getY() - self.cy
 
-            self.heading -= dx * self.mouse_sensitivity
-            self.pitch = max(-90, min(90, self.pitch - dy * self.mouse_sensitivity))
-            self.camera.setHpr(self.heading, self.pitch, 0)
+                self.heading -= dx * self.mouse_sensitivity
+                self.pitch = max(-90, min(90, self.pitch - dy * self.mouse_sensitivity))
+                self.camera.setHpr(self.heading, self.pitch, 0)
+                self.center_mouse()
 
-            self.center_mouse()
+            direction = Vec3()
+            quat = self.camera.getQuat()
 
-        direction = Vec3()
-        quat = self.camera.getQuat()
+            if self.keys["w"]: direction += quat.getForward()
+            if self.keys["s"]: direction -= quat.getForward()
+            if self.keys["a"]: direction -= quat.getRight()
+            if self.keys["d"]: direction += quat.getRight()
+            if self.keys["q"]: direction -= quat.getUp()
+            if self.keys["e"]: direction += quat.getUp()
 
-        if self.keys["w"]: direction += quat.getForward()
-        if self.keys["s"]: direction -= quat.getForward()
-        if self.keys["a"]: direction -= quat.getRight()
-        if self.keys["d"]: direction += quat.getRight()
-        if self.keys["q"]: direction -= quat.getUp()
-        if self.keys["e"]: direction += quat.getUp()
+            if direction.length_squared() > 0:
+                direction.normalize()
+                self.camera.setPos(self.camera.getPos() + direction * self.speed * dt)
 
-        if direction.length_squared() > 0:
-            direction.normalize()
-            self.camera.setPos(self.camera.getPos() + direction * self.speed * dt)
+            if self.keys["shift"]:
+                self.camera.setZ(self.camera, -self.speed * dt)
+            if self.keys["space"]:
+                self.camera.setZ(self.camera,  self.speed * dt)
 
-        if self.keys["shift"]:
-            self.camera.setZ(self.camera, -self.speed * dt)
-        if self.keys["space"]:
-            self.camera.setZ(self.camera,  self.speed * dt)
+            pos = self.camera.getPos()
+            self.coord_text.setText(f"Pos: X={pos.x:.1f}, Y={pos.y:.1f}, Z={pos.z:.1f}")
 
-        pos = self.camera.getPos()
-        self.coord_text.setText(f"Pos: X={pos.x:.1f}, Y={pos.y:.1f}, Z={pos.z:.1f}")
-
-        return Task.cont
+            return Task.cont

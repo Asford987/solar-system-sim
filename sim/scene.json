@@ -37,6 +37,10 @@
       "rotation_speed": 30.0,
       "inclination": 0.0,
       "texture": "assets/textures/earth.jpg",
+      "overlay": {
+        "texture": "assets/textures/earth_clouds.png",
+        "speed": 35.0
+      },
       "children": [
         {
           "name": "Moon",
@@ -209,7 +213,7 @@
       "rings": {
         "inner_radius": 1.2,
         "outer_radius": 2.5,
-        "texture": "assets/textures/saturn_ring.png",
+        "texture": "assets/textures/saturn_ring.jpg",
         "rotation_speed": 10.0
       },
       "children": [
@@ -433,6 +437,39 @@
           "texture": "assets/textures/moon.jpg"
         }
       ]
+    },
+    {
+      "name": "Halley",
+      "type": "comet",
+      "radius": 0.1,
+      "orbit_radius": 356,       
+      "eccentricity": 0.967,
+      "orbit_speed": 1.0,
+      "rotation_speed": 15.0,
+      "inclination": 162.26,
+      "texture": "assets/textures/moon.jpg"
+    },
+    {
+      "name": "Encke",
+      "type": "comet",
+      "radius": 0.08,
+      "orbit_radius": 44.28,
+      "eccentricity": 0.848,
+      "orbit_speed": 3.0,
+      "rotation_speed": 10.0,
+      "inclination": 11.78,
+      "texture": "assets/textures/moon.jpg"
+    },
+    {
+      "name": "Swift Tuttle",
+      "type": "comet",
+      "radius": 0.12,
+      "orbit_radius": 522,
+      "eccentricity": 0.963,
+      "orbit_speed": 0.8,
+      "rotation_speed": 12.0,
+      "inclination": 113.44,
+      "texture": "assets/textures/moon.jpg"
     }
   ]
 }

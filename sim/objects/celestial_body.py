@@ -3,7 +3,7 @@ from panda3d.core import (
     Vec3, LineSegs, NodePath, TextureStage, TransparencyAttrib,
     GeomVertexData, GeomVertexFormat, GeomVertexWriter,
     GeomTriangles, Geom, GeomNode, Texture, CullFaceAttrib,
-    DirectionalLight, AmbientLight, PointLight, Vec4
+    DirectionalLight, AmbientLight, PointLight, Vec4, BitMask32, CollisionNode, CollisionSphere
 )
 from direct.showbase.ShowBase import ShowBase
 from utils.orbit_math import clamp_angle
@@ -76,6 +76,9 @@ def _make_ring_primitive(segments=64):
 
 
 class CelestialBody:
+    
+    planet_counter = 0
+    
     def __init__(
         self,
         name,
@@ -114,6 +117,16 @@ class CelestialBody:
         self.overlay_np    = None
         self.overlay_angle = 0.0
         self.overlay_speed = 0.0
+        self.planet_counter += 1
+        
+        collider_node = CollisionNode(f"{name}_collider")
+        collider_node.setIntoCollideMask(BitMask32.bit(1))  # Must match ray's from mask
+        collider_node.addSolid(CollisionSphere(0, 0, 0, self.radius))  # A sphere based on the planet's scaled radius
+        collider_np = self.model.attachNewNode(collider_node)
+
+        # Tag the model for identification on ray hit
+        self.model.setTag("planet", "true")
+        self.model.setTag("planet_id", str(self.planet_counter))
 
         if self.texture_path:
             tex = loader.loadTexture(self.texture_path)

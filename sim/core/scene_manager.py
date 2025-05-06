@@ -29,6 +29,7 @@ class SceneManager:
 
         body = CelestialBody(
             name=name,
+            app=self.app,
             parent_node=parent_node,
             orbit_radius=orbit_radius,
             eccentricity=eccentricity,

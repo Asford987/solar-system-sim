@@ -78,6 +78,7 @@ class CelestialBody:
     def __init__(
         self,
         name,
+        app,
         parent_node,
         orbit_radius,
         eccentricity, 
@@ -91,9 +92,9 @@ class CelestialBody:
         overlay=None,
     ):
         self.name           = name
+        self.app            = app
         self.orbit_radius   = orbit_radius
         self.eccentricity   = eccentricity
-        # semi-eixo menor b = a * sqrt(1 - e^2)
         self._semi_minor    = orbit_radius * math.sqrt(max(0, 1 - eccentricity**2))
         self.orbit_speed    = orbit_speed
         self.rotation_speed = rotation_speed
@@ -113,7 +114,6 @@ class CelestialBody:
         self.overlay_angle = 0.0
         self.overlay_speed = 0.0
 
-        # aplica textura com UVs limpas
         if self.texture_path:
             tex = loader.loadTexture(self.texture_path)
             tex.setMinfilter(tex.FT_linear_mipmap_linear)
@@ -125,11 +125,9 @@ class CelestialBody:
             self.model.setTexScale(ts, 1, 1)
             self.model.setTransparency(TransparencyAttrib.M_alpha)
 
-        # debug orbit ring
         if debug_orbit and self.orbit_radius > 0:
             self._make_orbit_ring(parent_node)
 
-        # initial placement
         self.node.setPos(self._inclined_pos(self.orbit_angle))
 
         self.ring_np = None
@@ -138,7 +136,6 @@ class CelestialBody:
             outer  = rings["outer_radius"]
             tex    = rings["texture"]
             speed  = rings.get("rotation_speed", self.rotation_speed)
-            # cria e parenta o GeoNode na cena
             vdata = _make_ring_vertex_data(inner, outer)
             prim  = _make_ring_primitive()
             geom  = Geom(vdata)
@@ -146,15 +143,13 @@ class CelestialBody:
             node  = GeomNode('saturn_ring')
             node.add_geom(geom)
             ring_np = self.node.attach_new_node(node)
-            ring_np.setZ(self.radius * 0.01)                     # eleva o anel para não ficar oculto
-            ring_np.setTwoSided(True)                           # mostra ambos os lados do anel
-            ring_np.setBin('transparent', 10)                   # força renderizar depois para transparência
+            ring_np.setZ(self.radius * 0.01)
+            ring_np.setTwoSided(True)
+            ring_np.setBin('transparent', 10)
             ring_np.setDepthWrite(False) 
-            # aplica textura e transparência
             ts = TextureStage('ts')
             ring_np.setTexture(ts, loader.loadTexture(tex))
             ring_np.setTransparency(TransparencyAttrib.M_alpha)
-            # guarda para animar
             ring_np.setPythonTag('ring_speed', speed)
             self.ring_np = ring_np
 
@@ -175,10 +170,9 @@ class CelestialBody:
 
             ov_np.setTransparency(TransparencyAttrib.MAlpha)
             ov_np.setBin("transparent", 20)
-            ov_np.setDepthWrite(False)                                            # n escreve no depth
-            ov_np.setDepthTest(True)                                             # n testa depth, assim o planeta aparece atrás
+            ov_np.setDepthWrite(False)
+            ov_np.setDepthTest(True)
             ov_np.setTwoSided(True)
-            # ov_np.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
             self.overlay_np    = ov_np
             self.overlay_speed = overlay.get("speed", 0.0)
     def _inclined_pos(self, angle_deg):
@@ -210,10 +204,10 @@ class CelestialBody:
 
     def update_task(self, task):
         dt = globalClock.getDt()
+        if not self.app._mouse_enabled:
 
-        self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
-        self.node.setPos(self._inclined_pos(self.orbit_angle))
-
+            self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
+            self.node.setPos(self._inclined_pos(self.orbit_angle))
         self.rotation_angle += self.rotation_speed * dt
         self.model.setH(self.rotation_angle)
         if self.ring_np:
@@ -222,6 +216,5 @@ class CelestialBody:
         if self.overlay_np:
             dt = globalClock.getDt()
             self.overlay_angle += self.overlay_speed * dt
-            # overlay segue a rotação do planeta + offset à parte
             self.overlay_np.setH(self.rotation_angle + self.overlay_angle)
         return task.cont

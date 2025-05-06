@@ -70,6 +70,7 @@ def _make_sky_sphere(radius=1500, lat_steps=16, long_steps=32):
 class SolarSystemApp(ShowBase):
     def __init__(self):
         super().__init__()
+        self._mouse_enabled = False
 
         self.setBackgroundColor(0, 0, 0, 1)
         scene_data = self.load_scene_data("scene.json")

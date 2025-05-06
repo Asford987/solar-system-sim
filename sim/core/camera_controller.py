@@ -45,6 +45,7 @@ class CameraController:
         self.center_mouse()
         props = WindowProperties()
         self.app._mouse_enabled = enabled
+        self.app._frozen_time = enabled
         if not enabled:
             props.setCursorHidden(True)
             props.setMouseMode(WindowProperties.M_confined)
@@ -63,7 +64,7 @@ class CameraController:
 
     def update_camera(self, task):
         dt = globalClock.getDt()
-        if not self.app._mouse_enabled:
+        if not (self.app._mouse_enabled and self.app._frozen_time):
 
             if self.app.mouseWatcherNode.hasMouse():
                 md = self.win.getPointer(0)

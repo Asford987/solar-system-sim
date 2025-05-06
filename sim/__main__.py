@@ -71,6 +71,7 @@ class SolarSystemApp(ShowBase):
     def __init__(self):
         super().__init__()
         self._mouse_enabled = False
+        self._frozen_time = False
 
         self.setBackgroundColor(0, 0, 0, 1)
         self.scene_data = self.load_scene_data("scene.json")
@@ -101,25 +102,26 @@ class SolarSystemApp(ShowBase):
 
     def _build_starfield(self):
         """Create an inside-out procedural skydome textured with stars."""
+        # 1) gera e parenta o skydome
         dome_np = self.render.attach_new_node(_make_sky_sphere())
         dome_np.setLightOff()
         dome_np.setBin("background", 0)
         dome_np.setDepthWrite(False)
         dome_np.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullNone))
 
+        # 2) carrega a textura seamless da galáxia
         stars = loader.loadTexture("../assets/textures/space.jpg")
-        stars.setMinfilter(stars.FTLinearMipmapLinear)
-        sky.setTexture(stars, 1)
-        sky.setTexScale(TextureStage.getDefault(), 1, -1)
         stars.setMinfilter(Texture.FTLinearMipmapLinear)
         stars.setWrapU(Texture.WMRepeat)
         stars.setWrapV(Texture.WMClamp)
 
+        # 3) aplica no modo REPLACE
         ts = TextureStage("env")
         ts.setMode(TextureStage.MReplace)
         dome_np.setTexture(ts, stars)
         dome_np.setTexScale(ts, 1, 1)
         dome_np.setTexOffset(ts, 0.5, 0)
+        
     async def websocket_handler(self, websocket, path):
         async for message in websocket:
             data = json.loads(message)

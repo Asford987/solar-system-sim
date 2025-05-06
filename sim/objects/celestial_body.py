@@ -231,7 +231,7 @@ class CelestialBody:
 
     def update_task(self, task):
         dt = globalClock.getDt()
-        if not self.app._mouse_enabled:
+        if not self.app._frozen_time:
             self.app.sun_light_np.setPos(self.node.getPos(render))
             self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
             self.node.setPos(self._inclined_pos(self.orbit_angle))

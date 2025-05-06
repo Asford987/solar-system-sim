@@ -10,8 +10,17 @@ class InputHandler:
 
         app.accept("r", self.reset_camera)
         app.accept("v", self.toggle_speed)
+        app.accept("p", self.freeze_time)
+        app.accept("n", self.run_st)
         app.accept("escape", self.pause)
         
+    def freeze_time(self):
+        self.app._frozen_time = not self.app._frozen_time
+        
+    def run_st(self):
+        pass
+        
+    
     def pause(self):
         self.camera_controller.set_mouse_enabled(True)
         self.pause_buttons = []

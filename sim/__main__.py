@@ -92,6 +92,7 @@ class SolarSystemApp(ShowBase):
 
         # sky procedural
         self._build_starfield()
+        self.input_handler.reset_camera()
 
     def load_scene_data(self, filename):
         path = os.path.join(os.path.dirname(__file__), filename)

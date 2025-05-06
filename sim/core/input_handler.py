@@ -42,5 +42,6 @@ class InputHandler:
         print(f"Speed set to: {self.camera_controller.speed}")
 
     def reset_camera(self):
+        self.camera_controller.center_mouse()
         self.app.camera.setPos(0, -30, 5)
         self.app.camera.setHpr(0, 0, 0)

@@ -37,7 +37,6 @@ class CameraController:
             align=TextNode.ALeft,
             mayChange=True,
         )
-        # Ensure the mouse is disabled by default
         self.set_mouse_enabled(False)
 
         app.taskMgr.add(self.update_camera, "free_fly_camera")
@@ -65,7 +64,6 @@ class CameraController:
     def update_camera(self, task):
         dt = globalClock.getDt()
         if not self.app._mouse_enabled:
-            print(self.app._mouse_enabled)
 
             if self.app.mouseWatcherNode.hasMouse():
                 md = self.win.getPointer(0)

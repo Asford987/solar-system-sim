@@ -181,16 +181,13 @@ class CelestialBody:
 
         # Only create lights once
         if not hasattr(app, 'sun_light_np'):
-            # Create PointLight to simulate sun
             sun_light = PointLight('sun')
             sun_light.setColor(Vec4(1.0, 1.0, 0.9, 1))
             sun_np = render.attachNewNode(sun_light)
-            sun_np.setPos(0, 0, 0)  # Set to your sun's position in the scene
+            sun_np.setPos(0, 0, 0)
 
-            # Optionally adjust attenuation (falloff)
-            sun_light.setAttenuation((1, 0, 0.0001))  # (constant, linear, quadratic)
+            sun_light.setAttenuation((1, 0, 0.0001))
 
-            # Ambient light
             ambient_light = AmbientLight('ambient')
             ambient_light.setColor(Vec4(0.1, 0.1, 0.1, 1))
             ambient_np = render.attachNewNode(ambient_light)

@@ -55,7 +55,6 @@ def add_spherical_uv_to_egg(file_path, output_path):
     with open(output_path, 'w') as out_file:
         out_file.writelines(modified_lines)
 
-    print(f"Spherical UV mapping applied and saved to {output_path}")
 
 if __name__ == "__main__":
     input_file = 'assets/models/planet_sphere.egg'

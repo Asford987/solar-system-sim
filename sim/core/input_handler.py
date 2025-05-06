@@ -39,9 +39,8 @@ class InputHandler:
             self._speed_index = 2
         self._speed_index = (self._speed_index + 1) % len(self._speed_levels)
         self.camera_controller.speed = self._speed_levels[self._speed_index]
-        print(f"Speed set to: {self.camera_controller.speed}")
 
     def reset_camera(self):
         self.camera_controller.center_mouse()
         self.app.camera.setPos(0, -30, 5)
-        self.app.camera.setHpr(0, 0, 0)
+        self.app.camera.lookAt(0, 0, 0)

@@ -208,13 +208,13 @@ class CelestialBody:
 
             self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
             self.node.setPos(self._inclined_pos(self.orbit_angle))
-        self.rotation_angle += self.rotation_speed * dt
-        self.model.setH(self.rotation_angle)
-        if self.ring_np:
-            rs = self.ring_np.getPythonTag('ring_speed')
-            self.ring_np.setH(self.ring_np.getH() + rs *50* globalClock.getDt())
-        if self.overlay_np:
-            dt = globalClock.getDt()
-            self.overlay_angle += self.overlay_speed * dt
-            self.overlay_np.setH(self.rotation_angle + self.overlay_angle)
+            self.rotation_angle += self.rotation_speed * dt
+            self.model.setH(self.rotation_angle)
+            if self.ring_np:
+                rs = self.ring_np.getPythonTag('ring_speed')
+                self.ring_np.setH(self.ring_np.getH() + rs *50* globalClock.getDt())
+            if self.overlay_np:
+                dt = globalClock.getDt()
+                self.overlay_angle += self.overlay_speed * dt
+                self.overlay_np.setH(self.rotation_angle + self.overlay_angle)
         return task.cont

@@ -2,7 +2,8 @@ import math
 from panda3d.core import (
     Vec3, LineSegs, NodePath, TextureStage, TransparencyAttrib,
     GeomVertexData, GeomVertexFormat, GeomVertexWriter,
-    GeomTriangles, Geom, GeomNode, Texture, CullFaceAttrib
+    GeomTriangles, Geom, GeomNode, Texture, CullFaceAttrib,
+    DirectionalLight, AmbientLight, PointLight, Vec4
 )
 from direct.showbase.ShowBase import ShowBase
 from utils.orbit_math import clamp_angle
@@ -175,6 +176,35 @@ class CelestialBody:
             ov_np.setTwoSided(True)
             self.overlay_np    = ov_np
             self.overlay_speed = overlay.get("speed", 0.0)
+
+        self.model.setShaderAuto()
+
+        # Only create lights once
+        if not hasattr(app, 'sun_light_np'):
+            # Create PointLight to simulate sun
+            sun_light = PointLight('sun')
+            sun_light.setColor(Vec4(1.0, 1.0, 0.9, 1))
+            sun_np = render.attachNewNode(sun_light)
+            sun_np.setPos(0, 0, 0)  # Set to your sun's position in the scene
+
+            # Optionally adjust attenuation (falloff)
+            sun_light.setAttenuation((1, 0, 0.0001))  # (constant, linear, quadratic)
+
+            # Ambient light
+            ambient_light = AmbientLight('ambient')
+            ambient_light.setColor(Vec4(0.1, 0.1, 0.1, 1))
+            ambient_np = render.attachNewNode(ambient_light)
+
+            render.setLight(sun_np)
+            render.setLight(ambient_np)
+
+            app.sun_light_np = sun_np
+            app.ambient_light_np = ambient_np
+
+        # Apply lights to this planet
+        self.model.setLight(app.sun_light_np)
+        self.model.setLight(app.ambient_light_np)
+
     def _inclined_pos(self, angle_deg):
         """Return position on orbit with inclination applied (rotate about X)."""
         t = math.radians(angle_deg)
@@ -205,7 +235,7 @@ class CelestialBody:
     def update_task(self, task):
         dt = globalClock.getDt()
         if not self.app._mouse_enabled:
-
+            self.app.sun_light_np.setPos(self.node.getPos(render))
             self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
             self.node.setPos(self._inclined_pos(self.orbit_angle))
             self.rotation_angle += self.rotation_speed * dt

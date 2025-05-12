@@ -45,7 +45,7 @@ class InputHandler:
             return
 
         # Set ray origin/direction
-        self.picker_ray.setFromLens(self.app.camNode, 0, 0)  # (0, 0) = center of screen
+        self.picker_ray.setFromLens(self.app.camNode, 0, 0)
 
         # Perform collision
         self.picker.traverse(render)
@@ -53,7 +53,6 @@ class InputHandler:
             self.pq.sortEntries()
             for entry in self.pq.getEntries():
                 np = entry.getIntoNodePath()
-                # You might tag your planets with a specific tag like 'planet'
                 if np.hasTag("planet"):
                     self.planet_np = np
                     self.orbiting = True

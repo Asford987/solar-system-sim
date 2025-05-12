@@ -51,16 +51,6 @@
           "rotation_speed": 60.0,
           "inclination": 5.14,
           "texture": "assets/textures/moon.jpg"
-        },
-        {
-          "name": "New Moon 2",
-          "type": "moon",
-          "radius": 0.1,
-          "orbit_radius": 2.0,
-          "orbit_speed": 20.0,
-          "rotation_speed": 10.0,
-          "inclination": 0.5,
-          "texture": "assets/textures/moon.jpg"
         }
       ]
     },

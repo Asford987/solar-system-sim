@@ -1,8 +1,10 @@
 import math
 from panda3d.core import (
+    Material, Vec4,
     Vec3, LineSegs, NodePath, TextureStage, TransparencyAttrib,
     GeomVertexData, GeomVertexFormat, GeomVertexWriter,
-    GeomTriangles, Geom, GeomNode, Texture, BitMask32, CollisionNode, CollisionSphere
+    GeomTriangles, Geom, GeomNode, Texture, BitMask32, CollisionNode, CollisionSphere, 
+    BitMask32, CollisionNode, CollisionSphere, Material
 )
 
 from panda3d.core import ClockObject
@@ -97,7 +99,6 @@ class CelestialBody:
     ):
         self.overlay_rotation_angle = 0.0
         self.overlay_rotation_speed = overlay.get("speed", 0.0) if overlay else 0.0
-        
         self.name           = name
         self.app            = app
         self.orbit_radius   = orbit_radius
@@ -123,26 +124,31 @@ class CelestialBody:
         self.planet_counter += 1
         
         collider_node = CollisionNode(f"{name}_collider")
-        collider_node.setIntoCollideMask(BitMask32.bit(1))
+        collider_node.setIntoCollideMask(BitMask32.bit(1))  
         collider_node.addSolid(CollisionSphere(0, 0, 0, self.radius))
+
         self.model.setTag("planet", "true")
         self.model.setTag("planet_id", str(self.planet_counter))
 
         if self.name.lower() == 'sun':
             self.model.setLightOff()
-            from panda3d.core import Material, Vec4
             mat = Material()
             mat.setEmission(Vec4(1, 1, 1, 1))
             mat.setAmbient(Vec4(0, 0, 0, 1))
             self.model.setMaterial(mat, 1)
 
+        if self.name.lower() != 'sun':
+            self.model.setShaderAuto()
+            self.model.setLight(app.sun_light_np)
+            self.model.setLight(app.ambient_light_np)
+       
         if self.texture_path:
             tex = loader.loadTexture(self.texture_path)
             tex.setMinfilter(tex.FT_linear_mipmap_linear)
             tex.setWrapU(tex.WMRepeat)
             tex.setWrapV(tex.WMClamp)
             ts = TextureStage.getDefault()
-            ts.setMode(TextureStage.MModulate)
+            ts.setMode(TextureStage.MModulate) 
             self.model.setTexture(ts, tex)
             self.model.setTexScale(ts, 1, 1)
             self.model.setTransparency(TransparencyAttrib.M_alpha)
@@ -179,7 +185,9 @@ class CelestialBody:
             overlay_node = _make_sphere_geom(1.0, 16, 32)
             ov_np = self.node.attachNewNode(overlay_node)
             ov_np.setScale(self.radius * 1.01)
-            ov_np.setLightOff()  
+            ov_np.setShaderAuto()
+            ov_np.setLight(self.app.sun_light_np)
+            ov_np.setLight(self.app.ambient_light_np)
             ov_np.setTransparency(TransparencyAttrib.M_alpha)
             ov_tex = loader.loadTexture(overlay["texture"])
             ov_tex.setFormat(Texture.FRgba)   
@@ -189,7 +197,6 @@ class CelestialBody:
             ts2 = TextureStage("overlay")
             ts2.setMode(TextureStage.MModulate) 
             ov_np.setTexture(ts2, ov_tex)
-
             ov_np.setTransparency(TransparencyAttrib.MAlpha)
             ov_np.setBin("transparent", 20)
             ov_np.setDepthWrite(False)

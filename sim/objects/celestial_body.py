@@ -1,7 +1,7 @@
 import math
 from panda3d.core import (
-    Material, Vec4,
-    Vec3, LineSegs, NodePath, TextureStage, TransparencyAttrib,
+    PointLight, AmbientLight, Vec4,
+    Material, Vec3, LineSegs, NodePath, TextureStage, TransparencyAttrib,
     GeomVertexData, GeomVertexFormat, GeomVertexWriter,
     GeomTriangles, Geom, GeomNode, Texture, BitMask32, CollisionNode, CollisionSphere, 
     BitMask32, CollisionNode, CollisionSphere, Material
@@ -206,7 +206,6 @@ class CelestialBody:
             self.overlay_speed = overlay.get("speed", 0.0)
 
         if not hasattr(app, 'sun_light_np'):
-            from panda3d.core import PointLight, AmbientLight, Vec4
             sun_pl = PointLight('sun')
             sun_pl.setColor(Vec4(1, 1, 0.9, 1))
             sun_np = app.render.attachNewNode(sun_pl)

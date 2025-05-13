@@ -1,9 +1,6 @@
 import math
 import json
 import os
-import asyncio
-import websockets
-import threading
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
@@ -18,7 +15,6 @@ from panda3d.core import (
     GeomTriangles,
     Geom,
     GeomNode,
-    TransparencyAttrib,
     CullFaceAttrib
 )
 
@@ -101,8 +97,10 @@ class SolarSystemApp(ShowBase):
 
         self._build_starfield()
         self.input_handler.reset_camera()
+        self.taskMgr.add(self.watch_json_file, 'watch_json_updates')
+        self.last_mtime = None
 
-        threading.Thread(target=self.start_websocket_server, daemon=True).start()
+        # threading.Thread(target=self.start_websocket_server, daemon=True).start()
 
     def load_scene_data(self, filename):
         path = os.path.join(os.path.dirname(__file__), filename)
@@ -131,45 +129,17 @@ class SolarSystemApp(ShowBase):
         dome_np.setTexScale(ts, 1, 1)
         dome_np.setTexOffset(ts, 0.5, 0)
         
-    async def websocket_handler(self, websocket, path):
-        async for message in websocket:
-            data = json.loads(message)
-            if data["action"] == "add_moon":
-                planet_name = data["planet"]
-                self.add_moon_to_planet(planet_name)
-
-    def add_moon_to_planet(self, planet_name):
-        for obj in self.scene_data["children"]:
-            if obj["name"] == planet_name:
-                if "children" not in obj:
-                    obj["children"] = []
-                new_moon = {
-                    "name": f"New Moon {len(obj['children']) + 1}",
-                    "type": "moon",
-                    "radius": 0.1,
-                    "orbit_radius": 2.0,
-                    "orbit_speed": 20.0,
-                    "rotation_speed": 10.0,
-                    "inclination": 0.5,
-                    "texture": "assets/textures/moon.jpg"
-                }
-                obj["children"].append(new_moon)
+    def watch_json_file(self, task):
+        try:
+            current_mtime = os.path.getmtime("sim/scene.json")
+            if self.last_mtime is None or current_mtime != self.last_mtime:
+                print("Change found")
+                self.last_mtime = current_mtime
+                self.load_scene_data("scene.json")
                 self.scene_manager.build_scene(self.scene_data)
-                with open(os.path.join(os.path.dirname(__file__), "scene.json"), 'w') as f:
-                    json.dump(self.scene_data, f, indent=2)
-                
-                break
-
-    def start_websocket_server(self):
-        """Start the WebSocket server in a separate thread with its own event loop."""
-        async def run_server():
-            async with websockets.serve(self.websocket_handler, "localhost", 8765):
-                await asyncio.Future()
-
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(run_server())
-
+        except Exception as e:
+            print(f"Error reading file: {e}")
+        return task.cont
 
 if __name__ == "__main__":
     app = SolarSystemApp()

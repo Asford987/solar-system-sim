@@ -16,12 +16,25 @@ def save_scene_data(filename, data):
     path = os.path.join(os.path.dirname(__file__), "..", filename)
     with open(path, 'w') as f:
         json.dump(data, f, indent=2)
-
-# Função para enviar mensagem via WebSocket
-async def send_websocket_message(action, planet_name):
-    async with websockets.connect("ws://localhost:8765") as websocket:
-        message = {"action": action, "planet": planet_name}
-        await websocket.send(json.dumps(message))
+    
+def add_moon_to_planet(scene_data, planet_name):
+    for i, obj in enumerate(scene_data.copy()["children"]):
+        if obj["name"] == planet_name:
+            if "children" not in obj:
+                obj["children"] = []
+            new_moon = {
+                "name": f"New Moon {len(obj['children']) + 1}",
+                "type": "moon",
+                "radius": 0.1,
+                "orbit_radius": 2.0,
+                "orbit_speed": 20.0,
+                "rotation_speed": 10.0,
+                "inclination": 0.5,
+                "texture": "assets/textures/moon.jpg"
+            }
+            scene_data["children"][i]["children"].append(new_moon)
+            return scene_data
+    return scene_data
 
 # Carregar os dados da cena
 scene_file = "scene.json"
@@ -83,23 +96,27 @@ selected_planet = st.selectbox("Escolha um planeta:", planet_names)
 # Botão para adicionar a lua
 
 
+if "scene_data" not in st.session_state:
+    st.session_state.scene_data = load_scene_data(scene_file)
+
 if st.button("Adicionar Lua"):
-    asyncio.run(send_websocket_message("add_moon", selected_planet))
-    time.sleep(0.5)  # Aguarda o servidor processar a alteração
-    scene_data = load_scene_data(scene_file)  # Recarrega o arquivo atualizado
+    new_json = add_moon_to_planet(st.session_state.scene_data, selected_planet)
+    save_scene_data(scene_file, new_json)
+    time.sleep(0.5)  # Wait for the server to process the change
+    st.session_state.scene_data = load_scene_data(scene_file)
 
-    # Encontra o planeta selecionado e lista as luas
-    moons = []
-    for obj in scene_data["children"]:
-        if obj["name"] == selected_planet and "children" in obj:
-            moons = [child["name"] for child in obj["children"] if child["type"] == "moon"]
-            break
+# Encontra o planeta selecionado e lista as luas
+moons = []
+for obj in st.session_state.scene_data["children"]:
+    if obj["name"] == selected_planet and "children" in obj:
+        moons = [child["name"] for child in obj["children"] if child["type"] == "moon"]
+        break
 
-    st.success(f"🌕 Uma nova lua foi adicionada a {selected_planet}!")
+st.success(f"🌕 Uma nova lua foi adicionada a {selected_planet}!")
+if moons:
+    st.subheader(f"🌙 Luas atuais de {selected_planet}:")
+    for moon in moons:
+        st.write(f"• {moon}")
+else:
+    st.info("Este planeta ainda não possui luas.")
 
-    if moons:
-        st.subheader(f"🌙 Luas atuais de {selected_planet}:")
-        for moon in moons:
-            st.write(f"• {moon}")
-    else:
-        st.info("Este planeta ainda não possui luas.")

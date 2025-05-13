@@ -93,7 +93,7 @@ class CelestialBody:
         radius,
         texture_path=None,
         inclination=0.0,
-        debug_orbit=True,
+        debug_orbit=False,
         rings=None,
         overlay=None,
     ):

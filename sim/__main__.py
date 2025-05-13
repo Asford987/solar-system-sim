@@ -114,10 +114,15 @@ class SolarSystemApp(ShowBase):
     def watch_json_file(self, task):
         try:
             current_mtime = os.path.getmtime("sim/scene.json")
+            if self.last_mtime is None:
+                self.last_mtime = current_mtime
+                return
             if self.last_mtime is None or current_mtime != self.last_mtime:
                 print("Change found")
                 self.last_mtime = current_mtime
-                self.load_scene_data("scene.json")
+                self.render.get_children().detach()
+                self._build_starfield()
+                self.scene_data = self.load_scene_data("scene.json")
                 self.scene_manager.build_scene(self.scene_data)
         except Exception as e:
             print(f"Error reading file: {e}")

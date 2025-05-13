@@ -95,17 +95,17 @@ if st.button("Adicionar Lua"):
     time.sleep(0.5)
     st.session_state.scene_data = load_scene_data(scene_file)
 
-moons = []
-for obj in st.session_state.scene_data["children"]:
-    if obj["name"] == selected_planet and "children" in obj:
-        moons = [child["name"] for child in obj["children"] if child["type"] == "moon"]
-        break
+    moons = []
+    for obj in st.session_state.scene_data["children"]:
+        if obj["name"] == selected_planet and "children" in obj:
+            moons = [child["name"] for child in obj["children"] if child["type"] == "moon"]
+            break
 
-st.success(f"🌕 Uma nova lua foi adicionada a {selected_planet}!")
-if moons:
-    st.subheader(f"🌙 Luas atuais de {selected_planet}:")
-    for moon in moons:
-        st.write(f"• {moon}")
-else:
-    st.info("Este planeta ainda não possui luas.")
+    st.success(f"🌕 Uma nova lua foi adicionada a {selected_planet}!")
+    if moons:
+        st.subheader(f"🌙 Luas atuais de {selected_planet}:")
+        for moon in moons:
+            st.write(f"• {moon}")
+    else:
+        st.info("Este planeta ainda não possui luas.")
 

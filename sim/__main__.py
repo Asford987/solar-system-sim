@@ -72,20 +72,29 @@ class SolarSystemApp(ShowBase):
         super().__init__()
         self._mouse_enabled = False
         self._frozen_time = False
+        self._speed_factor = 0.5 # Controlar a velocidade da simulação
 
         self.setBackgroundColor(0, 0, 0, 1)
         self.scene_data = self.load_scene_data("scene.json")
 
         self.scene_manager = SceneManager(self)
         self.scene_manager.build_scene(self.scene_data)
-        sun_light = DirectionalLight('sun')
-        sun_np = self.render.attachNewNode(sun_light)
-        sun_np.setHpr(45, -60, 0)
-        self.render.setLight(sun_np)
+        
+        # Configurações de iluminação
+        self.alight = AmbientLight('alight')
+        self.alight.setColor((0.02, 0.02, 0.02, 1)) # Reduza a intensidade da luz ambiente
+        self.alnp = self.render.attachNewNode(self.alight)
+        self.render.setLight(self.alnp)
+        
+        # DESABILITANDO A DIRECTIONAL LIGHT GLOBAL
+        #sun_light = DirectionalLight('sun')
+        #sun_np = self.render.attachNewNode(sun_light)
+        #sun_np.setHpr(45, -60, 0)
+        #self.render.setLight(sun_np)
 
-        amb_light = AmbientLight('amb')
-        amb_light.setColor((0.2, 0.2, 0.2, 1))
-        self.render.setLight(self.render.attachNewNode(amb_light))
+        #amb_light = AmbientLight('amb')
+        #amb_light.setColor((0.2, 0.2, 0.2, 1))
+        #self.render.setLight(self.render.attachNewNode(amb_light))
 
         self.camera_controller = CameraController(self)
         self.input_handler = InputHandler(self, self.camera_controller)

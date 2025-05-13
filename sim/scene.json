@@ -4,6 +4,7 @@
   "radius": 2.0,
   "rotation_speed": 5.0,
   "texture": "assets/textures/sun.png",
+  "is_sun": true,
   "children": [
     {
       "name": "Mercury",
@@ -442,7 +443,7 @@
       "name": "Halley",
       "type": "comet",
       "radius": 0.1,
-      "orbit_radius": 356,       
+      "orbit_radius": 356,
       "eccentricity": 0.967,
       "orbit_speed": 1.0,
       "rotation_speed": 15.0,

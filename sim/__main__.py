@@ -72,7 +72,7 @@ class SolarSystemApp(ShowBase):
         super().__init__()
         self._mouse_enabled = False
         self._frozen_time = False
-        self._speed_factor = 0.5 # Controlar a velocidade da simulação
+        self._speed_factor = 0.5 
 
         self.setBackgroundColor(0, 0, 0, 1)
         self.scene_data = self.load_scene_data("scene.json")
@@ -80,22 +80,6 @@ class SolarSystemApp(ShowBase):
         self.scene_manager = SceneManager(self)
         self.scene_manager.build_scene(self.scene_data)
         
-        # Configurações de iluminação
-        self.alight = AmbientLight('alight')
-        self.alight.setColor((0.02, 0.02, 0.02, 1)) # Reduza a intensidade da luz ambiente
-        self.alnp = self.render.attachNewNode(self.alight)
-        self.render.setLight(self.alnp)
-        
-        # DESABILITANDO A DIRECTIONAL LIGHT GLOBAL
-        #sun_light = DirectionalLight('sun')
-        #sun_np = self.render.attachNewNode(sun_light)
-        #sun_np.setHpr(45, -60, 0)
-        #self.render.setLight(sun_np)
-
-        #amb_light = AmbientLight('amb')
-        #amb_light.setColor((0.2, 0.2, 0.2, 1))
-        #self.render.setLight(self.render.attachNewNode(amb_light))
-
         self.camera_controller = CameraController(self)
         self.input_handler = InputHandler(self, self.camera_controller)
 
@@ -111,20 +95,17 @@ class SolarSystemApp(ShowBase):
 
     def _build_starfield(self):
         """Create an inside-out procedural skydome textured with stars."""
-        # 1) gera e parenta o skydome
         dome_np = self.render.attach_new_node(_make_sky_sphere())
         dome_np.setLightOff()
         dome_np.setBin("background", 0)
         dome_np.setDepthWrite(False)
         dome_np.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullNone))
 
-        # 2) carrega a textura seamless da galáxia
         stars = loader.loadTexture("../assets/textures/space.jpg")
         stars.setMinfilter(Texture.FTLinearMipmapLinear)
         stars.setWrapU(Texture.WMRepeat)
         stars.setWrapV(Texture.WMClamp)
 
-        # 3) aplica no modo REPLACE
         ts = TextureStage("env")
         ts.setMode(TextureStage.MReplace)
         dome_np.setTexture(ts, stars)

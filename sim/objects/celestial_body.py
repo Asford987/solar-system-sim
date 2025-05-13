@@ -5,6 +5,10 @@ from panda3d.core import (
     GeomTriangles, Geom, GeomNode, Texture, CullFaceAttrib,
     DirectionalLight, AmbientLight, PointLight, Vec4, BitMask32, CollisionNode, CollisionSphere
 )
+
+from panda3d.core import ClockObject
+globalClock = ClockObject.getGlobalClock()
+
 from direct.showbase.ShowBase import ShowBase
 from utils.orbit_math import clamp_angle
 
@@ -78,6 +82,7 @@ def _make_ring_primitive(segments=64):
 class CelestialBody:
     
     planet_counter = 0
+
     
     def __init__(
         self,
@@ -94,7 +99,17 @@ class CelestialBody:
         debug_orbit=True,
         rings=None,
         overlay=None,
+        #axial_tilt=0.0,
+        #is_sun=False # Adicionado is_sun aqui
     ):
+        #novos construtores
+        #self.axial_tilt = axial_tilt
+        #self.is_sun = is_sun # Armazene o valor
+        self.overlay_rotation_angle = 0.0
+        self.overlay_rotation_speed = overlay.get("speed", 0.0) if overlay else 0.0
+
+
+        
         self.name           = name
         self.app            = app
         self.orbit_radius   = orbit_radius
@@ -128,13 +143,38 @@ class CelestialBody:
         self.model.setTag("planet", "true")
         self.model.setTag("planet_id", str(self.planet_counter))
 
+        # if self.is_sun:
+        #     self.sun_point_light = PointLight(f'{name}_light')
+        #     self.sun_point_light.setColor(Vec4(1, 1, 0.9, 1)) # Cor da PointLight do Sol
+        #     # Ajuste a atenuação conforme necessário. (1, 0, 0) = sem atenuação.
+        #     # Valores pequenos para o segundo e terceiro termo causam atenuação suave.
+        #     self.sun_point_light.setAttenuation((0.8, 0.00005, 0.0000005)) # Exemplo de atenuação
+        #     self.light_np = self.node.attachNewNode(self.sun_point_light)
+        #     self.app.render.setLight(self.light_np) # Aplica a PointLight à cena
+        #     self.node.setLightOff() # O próprio sol não se ilumina
+        #     self.model.setShaderOff() # O sol não precisa de shader para iluminação, ele emite
+        #     self.model.setColorScale(1.5, 1.5, 1.5, 1) # Torna o sol um pouco mais brilhante se a textura for escura
+        # else:
+        #     # Para planetas e luas, garanta que eles possam ser iluminados"
+        #     self.model.setShaderAuto() # Habilita shaders para responder à luz
+
+        # —————— Se for o Sol, desligue TODA luz e torne-o emissivo ——————
+        if self.name.lower() == 'sun':
+            self.model.setLightOff()                  # ignora todas as luzes
+            from panda3d.core import Material, Vec4
+            mat = Material()
+            mat.setEmission(Vec4(1, 1, 1, 1))         # emite luz branca
+            mat.setAmbient(Vec4(0, 0, 0, 1))          # sem componente ambiente
+            self.model.setMaterial(mat, 1)
+
         if self.texture_path:
             tex = loader.loadTexture(self.texture_path)
             tex.setMinfilter(tex.FT_linear_mipmap_linear)
             tex.setWrapU(tex.WMRepeat)
             tex.setWrapV(tex.WMClamp)
-            ts  = TextureStage.getDefault()
-            ts.setMode(TextureStage.MReplace)
+            ts = TextureStage.getDefault()
+                #ts.setMode(TextureStage.MReplace)
+            ts.setMode(TextureStage.MModulate)   # <<< textura responde à iluminação
             self.model.setTexture(ts, tex)
             self.model.setTexScale(ts, 1, 1)
             self.model.setTransparency(TransparencyAttrib.M_alpha)
@@ -190,30 +230,61 @@ class CelestialBody:
             self.overlay_np    = ov_np
             self.overlay_speed = overlay.get("speed", 0.0)
 
-        self.model.setShaderAuto()
+        #self.model.setShaderAuto()
+        # só habilita shading em planetas e luas
+        # if not self.is_sun:
+        #     self.model.setShaderAuto()
 
         # Only create lights once
+        # if not hasattr(app, 'sun_light_np'):
+        #     sun_light = PointLight('sun')
+        #     sun_light.setColor(Vec4(1.0, 1.0, 0.9, 1))
+        #     sun_np = render.attachNewNode(sun_light)
+        #     sun_np.setPos(0, 0, 0)
+
+        #     sun_light.setAttenuation((1, 0, 0.0001))
+
+        #     ambient_light = AmbientLight('ambient')
+        #     ambient_light.setColor(Vec4(0.1, 0.1, 0.1, 1))
+        #     ambient_np = render.attachNewNode(ambient_light)
+
+        #     render.setLight(sun_np)
+        #     render.setLight(ambient_np)
+
+        #     app.sun_light_np = sun_np
+        #     app.ambient_light_np = ambient_np
+        
         if not hasattr(app, 'sun_light_np'):
-            sun_light = PointLight('sun')
-            sun_light.setColor(Vec4(1.0, 1.0, 0.9, 1))
-            sun_np = render.attachNewNode(sun_light)
+            from panda3d.core import PointLight, AmbientLight, Vec4
+            # PointLight “Sol”
+            sun_pl = PointLight('sun')
+            sun_pl.setColor(Vec4(1, 1, 0.9, 1))
+            sun_np = app.render.attachNewNode(sun_pl)
             sun_np.setPos(0, 0, 0)
-
-            sun_light.setAttenuation((1, 0, 0.0001))
-
-            ambient_light = AmbientLight('ambient')
-            ambient_light.setColor(Vec4(0.1, 0.1, 0.1, 1))
-            ambient_np = render.attachNewNode(ambient_light)
-
-            render.setLight(sun_np)
-            render.setLight(ambient_np)
-
+            sun_pl.setAttenuation((1, 0, 0.0001))
+            # AmbientLight muito baixo
+            amb = AmbientLight('ambient')
+            amb.setColor(Vec4(0.01, 0.01, 0.01, 1))
+            amb_np = app.render.attachNewNode(amb)
+            # atacha à cena
+            app.render.setLight(sun_np)
+            app.render.setLight(amb_np)
             app.sun_light_np = sun_np
-            app.ambient_light_np = ambient_np
+            app.ambient_light_np = amb_np
 
+            
+        # só para quem NÃO for o Sol
+        if self.name.lower() != 'sun':
+            # habilita shading por pixel
+            self.model.setShaderAuto()
+            # aplica a PointLight e a AmbientLight que você criou
+            self.model.setLight(app.sun_light_np)
+            self.model.setLight(app.ambient_light_np)
+            
         # Apply lights to this planet
-        self.model.setLight(app.sun_light_np)
-        self.model.setLight(app.ambient_light_np)
+        # self.model.setLight(app.sun_light_np)
+        # self.model.setLight(app.ambient_light_np)
+    
 
     def _inclined_pos(self, angle_deg):
         """Return position on orbit with inclination applied (rotate about X)."""
@@ -242,19 +313,40 @@ class CelestialBody:
 
         NodePath(ls.create()).reparentTo(parent_node)
 
+    # def update_task(self, task):
+    #     dt = globalClock.getDt()
+    #     if not self.app._frozen_time:
+    #         self.app.sun_light_np.setPos(self.node.getPos(render))
+    #         self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
+    #         self.node.setPos(self._inclined_pos(self.orbit_angle))
+    #         self.rotation_angle += self.rotation_speed * dt
+    #         self.model.setH(self.rotation_angle)
+    #         if self.ring_np:
+    #             rs = self.ring_np.getPythonTag('ring_speed')
+    #             self.ring_np.setH(self.ring_np.getH() + rs *50* globalClock.getDt())
+    #         if self.overlay_np:
+    #             dt = globalClock.getDt()
+    #             self.overlay_angle += self.overlay_speed * dt
+    #             self.overlay_np.setH(self.rotation_angle + self.overlay_angle)
+                
+    #     return task.cont
+
     def update_task(self, task):
-        dt = globalClock.getDt()
+        dt = globalClock.getDt() * self.app._speed_factor # Use o _speed_factor
         if not self.app._frozen_time:
-            self.app.sun_light_np.setPos(self.node.getPos(render))
+            # REMOVA OU COMENTE ESTA LINHA:
+            # self.app.sun_light_np.setPos(self.node.getPos(render))
+
             self.orbit_angle = clamp_angle(self.orbit_angle + self.orbit_speed * dt)
             self.node.setPos(self._inclined_pos(self.orbit_angle))
+
             self.rotation_angle += self.rotation_speed * dt
-            self.model.setH(self.rotation_angle)
-            if self.ring_np:
-                rs = self.ring_np.getPythonTag('ring_speed')
-                self.ring_np.setH(self.ring_np.getH() + rs *50* globalClock.getDt())
+            # self.model.setHpr(self.rotation_angle, self.axial_tilt -90, 0) # Rotação e inclinação axial
+
             if self.overlay_np:
-                dt = globalClock.getDt()
-                self.overlay_angle += self.overlay_speed * dt
-                self.overlay_np.setH(self.rotation_angle + self.overlay_angle)
+                self.overlay_rotation_angle += self.overlay_rotation_speed * dt
+                self.overlay_np.setHpr(self.overlay_rotation_angle, -90, 0)
+
+            # A PointLight do Sol já está anexada ao nó do Sol e se moverá com ele.
+            # Não precisamos atualizar sua posição aqui separadamente se este CelestialBody é o Sol.
         return task.cont

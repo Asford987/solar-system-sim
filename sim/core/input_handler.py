@@ -1,13 +1,7 @@
 import math
-import subprocess
 import sys
 from direct.gui.DirectGui import DirectButton
-from panda3d.core import CollisionTraverser, CollisionNode, CollisionRay, CollisionHandlerQueue, BitMask32, WindowProperties, Vec3
-from concurrent.futures import ThreadPoolExecutor
-
-
-# def _run_st():
-#     subprocess.run("streamlit run sim/app/home.py", shell=True)
+from panda3d.core import CollisionTraverser, CollisionNode, CollisionRay, CollisionHandlerQueue, BitMask32, Vec3
 
 
 class InputHandler:
@@ -25,7 +19,7 @@ class InputHandler:
         self.pq = CollisionHandlerQueue()
         self.picker_node = CollisionNode('mouseRay')
         self.picker_np = self.app.camera.attachNewNode(self.picker_node)
-        self.picker_node.setIntoCollideMask(BitMask32.allOff())  # This node does not collide into anything
+        self.picker_node.setIntoCollideMask(BitMask32.allOff())
         self.picker_ray = CollisionRay()
         self.picker_node.addSolid(self.picker_ray)
         self.picker.addCollider(self.picker_np, self.pq)
@@ -33,21 +27,17 @@ class InputHandler:
         app.accept("r", self.reset_camera)
         app.accept("v", self.toggle_speed)
         app.accept("p", self.freeze_time)
-        # app.accept("n", self.run_st)
         app.accept("escape", self.pause)
         app.accept('mouse1', self.focus_on_planet)
 
         app.taskMgr.add(self.update_orbit_camera, "orbit_camera_task")
 
     def focus_on_planet(self):
-        # print('a')
         if not self.app.mouseWatcherNode.hasMouse():
             return
 
-        # Set ray origin/direction
         self.picker_ray.setFromLens(self.app.camNode, 0, 0)
 
-        # Perform collision
         self.picker.traverse(render)
         if self.pq.getNumEntries() > 0:
             self.pq.sortEntries()
@@ -86,14 +76,8 @@ class InputHandler:
 
         return task.cont
     
-            
     def freeze_time(self):
         self.app._frozen_time = not self.app._frozen_time
-    
-    # def run_st(self):
-    #     with ThreadPoolExecutor() as executor:
-    #         results = list(executor.map(_run_st))
-        
     
     def pause(self):
         self.camera_controller.set_mouse_enabled(True)

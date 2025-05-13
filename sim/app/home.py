@@ -1,17 +1,14 @@
 import streamlit as st
 import json
 import os
-import asyncio
-import websockets
 import time
 
-# Função para carregar os dados da cena
+
 def load_scene_data(filename):
     path = os.path.join(os.path.dirname(__file__), "..", filename)
     with open(path, 'r') as f:
         return json.load(f)
 
-# Função para salvar os dados da cena
 def save_scene_data(filename, data):
     path = os.path.join(os.path.dirname(__file__), "..", filename)
     with open(path, 'w') as f:
@@ -36,11 +33,9 @@ def add_moon_to_planet(scene_data, planet_name):
             return scene_data
     return scene_data
 
-# Carregar os dados da cena
 scene_file = "scene.json"
 scene_data = load_scene_data(scene_file)
 
-# Adicionar estilo futurista
 st.markdown(
     """
     <style>
@@ -83,17 +78,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Interface do Streamlit
 st.title("🌌 Gerenciador do Sistema Solar")
 st.subheader("🪐 Adicionar Lua a um Planeta")
 
-# Lista de planetas disponíveis
 planet_names = [obj["name"] for obj in scene_data["children"] if obj["type"] == "planet"]
 
-# Selecionar o planeta
 selected_planet = st.selectbox("Escolha um planeta:", planet_names)
-
-# Botão para adicionar a lua
 
 
 if "scene_data" not in st.session_state:
@@ -102,10 +92,9 @@ if "scene_data" not in st.session_state:
 if st.button("Adicionar Lua"):
     new_json = add_moon_to_planet(st.session_state.scene_data, selected_planet)
     save_scene_data(scene_file, new_json)
-    time.sleep(0.5)  # Wait for the server to process the change
+    time.sleep(0.5)
     st.session_state.scene_data = load_scene_data(scene_file)
 
-# Encontra o planeta selecionado e lista as luas
 moons = []
 for obj in st.session_state.scene_data["children"]:
     if obj["name"] == selected_planet and "children" in obj:

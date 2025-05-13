@@ -46,11 +46,10 @@ class SceneManager:
             inclination=inclination,
             rings=rings_data,
             overlay=overlay,
-            #is_sun=body_data.get("is_sun", False)
         )
 
         self.app.taskMgr.add(body.update_task, f"update-{name}")
 
         if "children" in body_data: 
             for child_data in body_data.get("children", []):
-                self._build_recursive(child_data, body.node) # O pai é o nó do corpo atual
+                self._build_recursive(child_data, body.node)
